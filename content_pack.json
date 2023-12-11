@@ -1,7 +1,7 @@
 {
   "v": 1,
   "id": "a3f1368c-41f0-4696-8505-aa8974270d5e",
-  "rev": 1,
+  "rev": 2,
   "name": "MariaDB Slow Query Log GROK Pattern",
   "summary": "Graylog GROK pattern to parse default MariaDb Slow Query Log",
   "description": "Graylog Grok pattern for standard MariaDb (default) slow query log format.",
