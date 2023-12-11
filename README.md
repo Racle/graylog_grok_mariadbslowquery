@@ -1,57 +1,70 @@
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://opensource.org/licenses/MIT)
 
+# MariaDB Slow Query Log GROK pattern for Graylog
 
-MySQL Slow Query Log GROK pattern for Graylog
-=============================================
+Forked from [zionio/graylog_grok_mysqlslowquery](https://github.com/zionio/graylog_grok_mysqlslowquery) and modified to work with MariaDB slowlog.
 
-Pattern
--------
+## Pattern
 
-    "name":"MYSQLSLOWQUERYLOG",
-    "pattern": "(?s) Time:%{SPACE}%{TIMESTAMP_ISO8601:mysql_slow_querydate}%{GREEDYDATA}User@Host: (?:%{USERNAME:mysql_slow_clientuser})\\[(?:%{DATA:mysql_slow_clientdbname})\\] @ (?:%{DATA:mysql_slow_clienthost}) \\[(?:%{DATA:mysql_slow_clientip})\\]%{SPACE}Id:%{SPACE}%{DATA:mysql_slow_id}%{GREEDYDATA}Query_time: %{NUMBER:mysql_slow_querytime:float}(?:%{SPACE})Lock_time: %{NUMBER:mysql_slow_locktime:float}(?:%{SPACE})Rows_sent: %{NUMBER:mysql_slow_rowssent:int}(?:%{SPACE})Rows_examined: %{NUMBER:mysql_slow_rowsexamined:int}(?:%{SPACE})(?:%{GREEDYDATA})SET timestamp=%{NUMBER:mysql_slow_timestamp};(\\r|\\n)%{DATA:mysql_slow_query};"
+    name: "MARIADBSLOWQUERYLOG"
+    pattern: "(?s) Time: %{DATA:mysql_slow_querydate}\n%{GREEDYDATA}User@Host: (?:%{USERNAME:mysql_slow_clientuser})\[(?:%{DATA:mysql_slow_clientdbname})\] @ (?:%{DATA:mysql_slow_clienthost}) \[(?:%{DATA:mysql_slow_clientip})\]\n# Thread_id:%{DATA} Schema: %{GREEDYDATA:mysql_slow_schema}%{SPACE}QC_hit: %{DATA:mysql_slow_qc_hit}# Query_time: %{NUMBER:mysql_slow_querytime:float}(?:%{SPACE})Lock_time: %{NUMBER:mysql_slow_locktime:float}(?:%{SPACE})Rows_sent: %{NUMBER:mysql_slow_rowssent:int}(?:%{SPACE})Rows_examined: %{NUMBER:mysql_slow_rows_examined:int}%{GREEDYDATA}# Rows_affected: %{NUMBER:mysql_slow_rows_affected:int}%{SPACE}Bytes_sent: %{NUMBER:mysql_slow_bytes_sent:int}(?:%{GREEDYDATA})SET timestamp=%{NUMBER:mysql_slow_timestamp};\n%{GREEDYDATA:mysql_slow_query};"
 
-Example message
----------------
+## Example message
 
-    # Time: 2020-11-06T23:04:23.313878Z
-    # User@Host: root[root] @ localhost [127.0.0.1]  Id:     5
-    # Query_time: 7.000540  Lock_time: 0.000000 Rows_sent: 1  Rows_examined: 0
-    SET timestamp=1604703863;
-    select 1 as uno, 2 as due, 3 as tre, 4 as quattro, sleep(7);
+    # Time: 231211 10:39:41
+    # User@Host: root[root] @  [1.1.1.1]
+    # Thread_id: 1  Schema: db  QC_hit: No
+    # Query_time: 9.000000  Lock_time: 0.000011  Rows_sent: 1  Rows_examined: 10
+    # Rows_affected: 0  Bytes_sent: 0
+    use db;
+    SET timestamp=1672531200;
+    SELECT * FROM `table`;
 
-Fields
-------
+## Fields
 
-    mysql_slow_querydate: 2020-11-07 00:04:23 +01:00
-    mysql_slow_clienthost: localhost
-    mysql_slow_clientip: 127.0.0.1
-    mysql_slow_clientuser: root
-    mysql_slow_clientdbname: root
-    mysql_slow_locktime: 0
-    mysql_slow_id: 5
-    mysql_slow_querytime: 7.000540
-    mysql_slow_rowsexamined: 0
-    mysql_slow_rowssent: 1
-    mysql_slow_timestamp: 1604703863
-    mysql_slow_query: select 1 as uno, 2 as due, 3 as tre, 4 as quattro, sleep(7)
+    mysql_slow_querydate 231211 10:39:41
+    mysql_slow_clientuser root
+    mysql_slow_clientdbname root
+    mysql_slow_clienthost
+    mysql_slow_clientip 1.1.1.1
+    mysql_slow_schema db
+    mysql_slow_qc_hit No
+    mysql_slow_querytime 9.000000
+    mysql_slow_locktime 0.000011
+    mysql_slow_rowssent 1
+    mysql_slow_rows_examined 10
+    mysql_slow_rows_affected 0
+    mysql_slow_bytes_sent 0
+    mysql_slow_timestamp 1672531200
+    mysql_slow_query SELECT * FROM `table`;
 
-Input
------
+## Input (Filebeat)
 
-A way to grab log lines: **Graylog Collector Sidecar** with Beats (Filebeat)
+Collector Configuration
 
-[![screen2](https://images2.imgbox.com/ca/b1/MqSjIBks_o.png)](https://images2.imgbox.com/ca/b1/MqSjIBks_o.png)
+    filebeat.inputs:
+    - input_type: log
+      paths:
+        - /path/to/mariadb/slowlog.log
+      type: log
+      multiline.pattern: '^\#[[:space:]]Time'
+      multiline.negate: true
+      multiline.match: after
 
+## Installation
 
-Installation
-------------
-
-Go to **Graylog Web Interface** -> **System** -> **Content Packs** then select *content_pack.json* file and upload it.
+Go to **Graylog Web Interface** -> **System** -> **Content Packs** then select _content_pack.json_ file and upload it and then Install.
 
 [![screen1](https://i.imgbox.com/HAsDC4FR.png)](https://i.imgbox.com/wP2n4HXH.png)
 
-Check
------
+## Extractor
+
+- Go to **Graylog Web Interface** -> **System** -> **Inputs** then select filebeat stream and click **Manage extractors**.
+- Click **Load Message** and then in message select **Select extractor type** -> **Grok pattern extractor**.
+- Check **Named Captures Only**.
+- In **Grok pattern** add `%{MARIADBSLOWQUERYLOG}`.
+
+## Check
 
 Created and tested on
-`Graylog 3.3.8+e223f85 (Oracle Corporation 1.8.0_242 on Linux 3.10.0-1062.12.1.el7.x86_64)`
+`Graylog Graylog 5.1.5`

@@ -2,11 +2,11 @@
   "v": 1,
   "id": "a3f1368c-41f0-4696-8505-aa8974270d5e",
   "rev": 1,
-  "name": "MySQL Slow Query Log GROK Pattern",
-  "summary": "Graylog GROK pattern to parse default MySQL Slow Query Log",
-  "description": "Graylog Grok pattern for standard MySQL (default) slow query log format.",
-  "vendor": "Andrea <andrea@fusilab.net>",
-  "url": "https://github.com/zionio/graylog_grok_mysqlslowquery.git",
+  "name": "MariaDB Slow Query Log GROK Pattern",
+  "summary": "Graylog GROK pattern to parse default MariaDb Slow Query Log",
+  "description": "Graylog Grok pattern for standard MariaDb (default) slow query log format.",
+  "vendor": "Racle",
+  "url": "https://github.com/Racle/graylog_grok_mariadbslowquery.git",
   "parameters": [],
   "entities": [
     {
@@ -17,8 +17,8 @@
       },
       "id": "d478b966-485c-4772-b74c-17818aabb2d6",
       "data": {
-        "name": "MYSQLSLOWQUERYLOG",
-        "pattern": "(?s) Time:%{SPACE}%{TIMESTAMP_ISO8601:mysql_slow_querydate}%{GREEDYDATA}User@Host: (?:%{USERNAME:mysql_slow_clientuser})\\[(?:%{DATA:mysql_slow_clientdbname})\\] @ (?:%{DATA:mysql_slow_clienthost}) \\[(?:%{DATA:mysql_slow_clientip})\\]%{SPACE}Id:%{SPACE}%{DATA:mysql_slow_id}%{GREEDYDATA}Query_time: %{NUMBER:mysql_slow_querytime:float}(?:%{SPACE})Lock_time: %{NUMBER:mysql_slow_locktime:float}(?:%{SPACE})Rows_sent: %{NUMBER:mysql_slow_rowssent:int}(?:%{SPACE})Rows_examined: %{NUMBER:mysql_slow_rowsexamined:int}(?:%{SPACE})(?:%{GREEDYDATA})SET timestamp=%{NUMBER:mysql_slow_timestamp};(\\r|\\n)%{DATA:mysql_slow_query};"
+        "name": "MARIADBSLOWQUERYLOG",
+        "pattern": "(?s) Time: %{DATA:mysql_slow_querydate}\\n%{GREEDYDATA}User@Host: (?:%{USERNAME:mysql_slow_clientuser})\\[(?:%{DATA:mysql_slow_clientdbname})\\] @ (?:%{DATA:mysql_slow_clienthost}) \\[(?:%{DATA:mysql_slow_clientip})\\]\\n# Thread_id:%{DATA} Schema: %{GREEDYDATA:mysql_slow_schema}%{SPACE}QC_hit: %{DATA:mysql_slow_qc_hit}# Query_time: %{NUMBER:mysql_slow_querytime:float}(?:%{SPACE})Lock_time: %{NUMBER:mysql_slow_locktime:float}(?:%{SPACE})Rows_sent: %{NUMBER:mysql_slow_rowssent:int}(?:%{SPACE})Rows_examined: %{NUMBER:mysql_slow_rows_examined:int}%{GREEDYDATA}# Rows_affected: %{NUMBER:mysql_slow_rows_affected:int}%{SPACE}Bytes_sent: %{NUMBER:mysql_slow_bytes_sent:int}(?:%{GREEDYDATA})SET timestamp=%{NUMBER:mysql_slow_timestamp};\\n%{GREEDYDATA:mysql_slow_query};"
       },
       "constraints": [
         {
@@ -73,24 +73,6 @@
       "data": {
         "name": "NUMBER",
         "pattern": "(?:%{BASE10NUM})"
-      },
-      "constraints": [
-        {
-          "type": "server-version",
-          "version": ">=3.3.8+e223f85"
-        }
-      ]
-    },
-    {
-      "v": "1",
-      "type": {
-        "name": "grok_pattern",
-        "version": "1"
-      },
-      "id": "7853e4e4-791a-4b78-8433-6672d2e3b007",
-      "data": {
-        "name": "TIMESTAMP_ISO8601",
-        "pattern": "%{YEAR}-%{MONTHNUM}-%{MONTHDAY}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})?%{ISO8601_TIMEZONE}?"
       },
       "constraints": [
         {
